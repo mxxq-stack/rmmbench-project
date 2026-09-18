@@ -115,17 +115,22 @@
 
   /* ---------- Video section ---------- */
   .video-grid { display: grid; grid-template-columns: 1fr; gap: 26px; margin-top: 10px; }
-  .video-grid.demo-grid {
-    grid-template-columns: repeat(6, 1fr); gap: 14px 12px;
-  }
+  .video-grid.demo-grid { grid-template-columns: repeat(6, 1fr); gap: 14px 12px; }
+.video-grid.nav-grid { grid-template-columns: repeat(5, 1fr); gap: 16px 14px; }
   .video-item { margin: 0; min-width: 0; }
   .video-item video { width: 100%; height: auto; display: block; border-radius: 6px; border: 1px solid var(--border); background: #000; }
   .video-cap {
     font-size: .72rem; text-align: center; color: var(--muted);
     margin-top: 5px; line-height: 1.4; word-break: break-all;
   }
-  @media (max-width: 960px) { .video-grid.demo-grid { grid-template-columns: repeat(3, 1fr); } }
-  @media (max-width: 560px) { .video-grid.demo-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 960px) {
+  .video-grid.demo-grid { grid-template-columns: repeat(3, 1fr); }
+  .video-grid.nav-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 560px) {
+  .video-grid.demo-grid { grid-template-columns: repeat(2, 1fr); }
+  .video-grid.nav-grid { grid-template-columns: repeat(2, 1fr); }
+}
   .video-placeholder {
     border: 2px dashed var(--border); border-radius: var(--radius);
     background: var(--light-bg); padding: 46px 20px; text-align: center; color: var(--muted);
@@ -294,12 +299,17 @@
     </div>
 
     <h3 class="subsection-title">Navigation Tasks</h3>
-    <div class="video-grid">
-      <!-- TODO: navigation demo videos to be added -->
-      <div class="video-placeholder">
-        <p class="tag">Video coming soon</p>
-        <p>Demonstrations of composite navigation&ndash;manipulation tasks across multiple functional layouts (with / without BEV mapping).</p>
-      </div>
+    <div class="video-grid nav-grid">
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/nav/nav_01.mp4"></video><figcaption class="video-cap">I want chicken for dinner tonight, put it in the sink for washing.</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/nav/nav_02.mp4"></video><figcaption class="video-cap">Heat up the steak first, and then wash the apple for me.</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/nav/nav_03.mp4"></video><figcaption class="video-cap">Put the bell pepper from the big white fridge onto the plate.</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/nav/nav_04.mp4"></video><figcaption class="video-cap">Put the bagged snacks into the blue tray.</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/nav/nav_05.mp4"></video><figcaption class="video-cap">Put the carrot on the plate and the cheese in the tray.</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/nav/nav_06.mp4"></video><figcaption class="video-cap">Get me a drink from the closed mini-fridge by the window.</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/nav/nav_07.mp4"></video><figcaption class="video-cap">I would like toasted bread, put the right food into the pan.</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/nav/nav_08.mp4"></video><figcaption class="video-cap">I want steak, put the steak into the pan to prepare it.</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/nav/nav_09.mp4"></video><figcaption class="video-cap">Get the bell pepper from the open fridge.</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/nav/nav_10.mp4"></video><figcaption class="video-cap">Choose a suitable tool based on the food next to the tray and put it into the tray.</figcaption></figure>
     </div>
   </section>
 
