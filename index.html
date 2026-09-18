@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RMMBench: A Comprehensive Benchmark for Robotic Mobile Manipulation</title>
+<meta name="description" content="RMMBench is a comprehensive benchmark for robotic mobile manipulation, evaluating VLMs across grounded spatial perception and composite navigation-manipulation tasks.">
+<!-- MathJax for metric formulas -->
+<script>
+window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] }, options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] } };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+  :root {
+    --text: #1f2328;
+    --muted: #656d76;
+    --accent: #0969da;
+    --accent-dark: #0550ae;
+    --bg: #ffffff;
+    --border: #e4e8ec;
+    --section-rule: #3b4351;
+    --light-bg: #f6f8fa;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    font-size: 16px;
+  }
+  .container { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- Top navbar ---------- */
+  .navbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .navbar-inner {
+    max-width: 1000px; margin: 0 auto; padding: 10px 24px;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  }
+  .navbar .brand { font-weight: 700; color: var(--accent); font-size: 1.05rem; }
+  .navbar a.nav-link { color: var(--muted); text-decoration: none; font-size: .88rem; }
+  .navbar a.nav-link:hover { color: var(--accent); }
+
+  /* ---------- Hero ---------- */
+  header.hero { padding: 64px 0 20px; text-align: center; }
+  h1.title {
+    font-size: 2.1rem; line-height: 1.25; font-weight: 800;
+    letter-spacing: -.01em; margin-bottom: 14px;
+  }
+  .authors { font-size: 1rem; margin: 18px 0 6px; }
+  .authors a { color: var(--accent); text-decoration: none; }
+  .authors a:hover { text-decoration: underline; }
+  .affiliations { color: var(--muted); font-size: .92rem; margin-bottom: 6px; }
+  .author-notes { color: var(--muted); font-size: .82rem; }
+  .link-buttons { margin: 26px 0 8px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 20px; border-radius: 20px; font-size: .92rem; font-weight: 600;
+    text-decoration: none; border: 1px solid var(--border); background: var(--bg); color: var(--text);
+    transition: all .15s ease;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); box-shadow: 0 1px 4px rgba(9,105,218,.15); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-dark); color: #fff; }
+
+  /* ---------- Sections ---------- */
+  section { padding: 34px 0; }
+  h2.section-title {
+    font-size: 1.45rem; font-weight: 750; margin-bottom: 18px;
+    border-bottom: 2px solid var(--section-rule); padding-bottom: 6px;
+  }
+  h3.subsection-title {
+    font-size: 1.12rem; font-weight: 700; margin: 26px 0 10px; color: var(--text);
+  }
+  p { margin-bottom: 12px; }
+  .muted { color: var(--muted); }
+  .emph { color: var(--accent-dark); }
+  ul.bullets { margin: 0 0 12px 22px; }
+  ul.bullets li { margin-bottom: 6px; }
+  figure.placeholder {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    background: var(--light-bg); padding: 40px 20px; text-align: center; color: var(--muted);
+    margin: 14px 0;
+  }
+
+  /* ---------- Tables ---------- */
+  .table-wrap { overflow-x: auto; margin: 14px 0; }
+  table.results {
+    border-collapse: collapse; font-size: .82rem; width: 100%;
+    min-width: 720px;
+  }
+  table.results caption {
+    caption-side: top; text-align: left; font-size: .9rem; font-weight: 650;
+    padding-bottom: 8px; color: var(--text);
+  }
+  table.results th, table.results td {
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 6px 8px; text-align: center; white-space: nowrap;
+  }
+  table.results th { background: var(--light-bg); font-weight: 650; }
+  table.results td:first-child, table.results th:first-child { text-align: left; font-weight: 600; }
+  table.results tr.ours td { background: #eaf3ff; }
+  table.results .row-group td, table.results th.group-sep { border-top: 2px solid var(--section-rule); }
+  .tbl-note { font-size: .78rem; color: var(--muted); margin-top: -6px; margin-bottom: 22px; }
+
+  /* ---------- Metric cards ---------- */
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin: 14px 0; }
+  .metric-card {
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px;
+    background: var(--bg);
+  }
+  .metric-card h4 { font-size: .98rem; font-weight: 700; margin-bottom: 6px; }
+  .metric-card p { font-size: .88rem; color: var(--muted); margin-bottom: 0; }
+
+  /* ---------- Video section ---------- */
+  .video-grid { display: grid; grid-template-columns: 1fr; gap: 26px; margin-top: 10px; }
+  .video-placeholder {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    background: var(--light-bg); padding: 46px 20px; text-align: center; color: var(--muted);
+  }
+  .video-placeholder .tag { color: var(--accent); font-weight: 700; }
+  video.demo { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); background: #000; }
+
+  /* ---------- Debug rollout inspector ---------- */
+  .debug-group-title { margin: 20px 0 10px; display: flex; align-items: baseline; gap: 10px; }
+  .debug-group-title h4 { font-size: 1rem; }
+  .debug-grid { display: grid; grid-template-columns: 1fr; gap: 18px; }
+  @media (min-width: 900px) {
+    .debug-grid.two-col { grid-template-columns: 1fr 1fr; }
+  }
+  .debug-card {
+    border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--bg); overflow: hidden; display: flex; flex-direction: column;
+  }
+  .debug-card-header {
+    padding: 12px 16px; background: var(--light-bg); border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .debug-card-header .name { font-weight: 700; font-size: .95rem; }
+  .debug-card-header .name .model { color: var(--muted); font-weight: 500; font-size: .8rem; }
+  .debug-card-header .open-link { font-size: .8rem; color: var(--accent); text-decoration: none; white-space: nowrap; }
+  .debug-card-header .open-link:hover { text-decoration: underline; }
+  .debug-card iframe {
+    width: 100%; height: 480px; border: 0; display: block; background: #f6f8fa;
+  }
+  .debug-card .hint {
+    font-size: .75rem; color: var(--muted); padding: 6px 14px; background: var(--light-bg);
+    border-top: 1px solid var(--border);
+  }
+
+  .fig-caption {
+    font-size: .82rem; color: var(--muted); text-align: center;
+    margin-top: 8px; line-height: 1.5;
+  }
+  .fig-caption strong { color: var(--text); }
+  figure.paper-fig { margin: 10px 0 6px; }
+  figure.paper-fig img { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); }
+
+  /* ---------- Citation ---------- */
+  .citation-box {
+    background: var(--light-bg); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px; font-size: .8rem; overflow-x: auto;
+  }
+  .citation-box pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre; }
+
+  footer { padding: 30px 0 50px; color: var(--muted); font-size: .85rem; text-align: center; }
+  .ack { text-align: left; font-size: .88rem; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- ================= Top navbar ================= -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <span class="brand">RMMBench</span>
+    <a class="nav-link" href="#abstract">Abstract</a>
+    <a class="nav-link" href="#benchmark">Benchmark</a>
+    <a class="nav-link" href="#results">Results</a>
+    <a class="nav-link" href="#videos">Videos</a>
+    <a class="nav-link" href="#rollouts">Rollout Logs</a>
+    <a class="nav-link" href="#citation">Citation</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- ================= Hero ================= -->
+  <header class="hero">
+    <h1 class="title">RMMBench: A Comprehensive Benchmark for<br>Robotic Mobile Manipulation</h1>
+    <div class="authors">
+      <a href="#">Huapeng Li</a><sup>1</sup>,
+      <a href="#">Fuxiang Feng</a><sup>1*</sup>,
+      <a href="#">Jinqiu Fan</a><sup>1*</sup>,
+      <a href="#">Shuo Yang</a><sup>1</sup>,
+      <a href="#">Fengjiao Chen</a><sup>1</sup>,
+      <a href="#">Xuezhi Cao</a><sup>1</sup>,
+      <a href="#">Ran Song</a><sup>1&dagger;</sup>,
+      <a href="#">Wei Zhang</a><sup>1</sup>
+    </div>
+    <div class="affiliations">
+      <sup>1</sup>Shandong University &nbsp;&nbsp; <sup>2</sup>Meituan Group
+    </div>
+    <div class="author-notes">* These authors contributed equally. &nbsp; &dagger; Correspondence to: Ran Song &lt;ran.song@sdu.edu.cn&gt;</div>
+
+    <!--
+      ============================================================
+      TODO: 请在此处补充实际链接（arXiv / GitHub / Dataset 等）
+      ============================================================
+    -->
+    <div class="link-buttons">
+      <!-- TODO: replace "#" with the arXiv / paper PDF link -->
+      <a class="btn btn-primary" href="#" target="_blank">&#128196; Paper</a>
+      <!-- TODO: replace "#" with the GitHub repository link -->
+      <a class="btn" href="#" target="_blank">&#128187; Code</a>
+      <!-- TODO: replace "#" with the dataset link -->
+      <a class="btn" href="#" target="_blank">&#128230; Dataset</a>
+    </div>
+  </header>
+
+  <!-- ================= Abstract ================= -->
+  <section id="abstract">
+    <h2 class="section-title">Abstract</h2>
+    <p>
+      Although the advancement of vision-language models (VLMs) has endowed robots with enhanced environmental understanding and task reasoning, a comprehensive evaluation methodology is important to advance the integration of VLMs in robotic navigation and manipulation. However, current benchmarks lack a comprehensive method to evaluate diverse robotic tasks, and evaluation metrics remain relatively constrained, making it difficult to assess the embodied capabilities of VLMs in a thorough and fine-grained manner.
+    </p>
+    <p>
+      To address this issue, we propose <strong>RMMBench</strong>, an evaluation benchmark that requires robots to understand language instructions and perform long-horizon tasks in continuous spaces. RMMBench seamlessly integrates high- and low-level embodied tasks into a unified framework, constructing a &ldquo;navigation&ndash;manipulation&rdquo; task suite comprising <span class="emph">70 canonical task scenarios</span> that range from localized manipulation to long-horizon composite navigation. The results reveal that leading VLMs still face major challenges in spatial localization when coping with mobile manipulation tasks, and also highlight the necessity of enhancing the spatial perception capability of robots during long-period interactions.
+    </p>
+    <figure class="paper-fig">
+      <img src="images/abstract.gif" alt="Overview of the RMMBench (animated)">
+      <figcaption class="fig-caption"><strong>Overview of the RMMBench.</strong> RMMBench is a comprehensive mobile manipulation benchmark with a standardized skill library to evaluate the embodied performance of vision-language models.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= Benchmark ================= -->
+  <section id="benchmark">
+    <h2 class="section-title">The RMMBench Benchmark</h2>
+    <p>
+      RMMBench requires VLM-based models to execute continuous-space, long-horizon mobile manipulation tasks based on language instructions and raw visual feedback. Evaluating this capability requires tight integration of sequential planning, spatial grounding, and closed-loop visual verification.
+    </p>
+
+    <figure class="paper-fig">
+      <img src="images/framework.png" alt="Overview of the RMMBench evaluation pipeline">
+      <figcaption class="fig-caption"><strong>Overview of the RMMBench evaluation pipeline.</strong> It ingests head and wrist camera views, complemented by an optional bird&rsquo;s eye view (BEV) modality. Navigation is executed over a Hanan grid dynamically bounded by the workspace geometry. For manipulation tasks, the pipeline overlays algorithmic candidates from GraspNet and a human-verified baseline fallback onto the wrist view for the VLM to select. Decision-making is conditioned on the historical context.</figcaption>
+    </figure>
+
+    <h3 class="subsection-title">Fine-Grained Evaluation Metrics</h3>
+    <p>
+      To provide a rigorous, non-binary evaluation of VLM performance in long-horizon composite tasks, RMMBench provides a quantitative evaluation suite across three core dimensions: <strong>task execution progress</strong>, <strong>visual grounding precision</strong>, and <strong>error-correction behavior</strong>, covering 6 categories of process-oriented metrics.
+    </p>
+    <div class="metric-grid">
+      <div class="metric-card">
+        <h4>Execution Efficiency (EE)</h4>
+        <p>Penalizes redundant actions against the expert reference sequence length; computed only over successful trajectories.</p>
+      </div>
+      <div class="metric-card">
+        <h4>Manipulation Completion Rate (CR<sub>m</sub>)</h4>
+        <p>Measures the proportion of satisfied atomic sub-conditions during manipulation.</p>
+      </div>
+      <div class="metric-card">
+        <h4>Navigation Completion Rate (CR<sub>n</sub>)</h4>
+        <p>Monitors workspace radius and orientation alignment for navigation stages.</p>
+      </div>
+      <div class="metric-card">
+        <h4>Navigation Progress (NP)</h4>
+        <p>Tracks spatial transit efficiency against the initial expert distance.</p>
+      </div>
+      <div class="metric-card">
+        <h4>Expert Action Recall Rate (RR<sub>act</sub>)</h4>
+        <p>Formulated through the longest common subsequence (LCS) relative to the expert reference sequence:
+        \( RR_{\text{act}} = \frac{\text{Len}(\text{LCS}(Seq_{\text{vlm}}, Seq_{\text{expert}}))}{\text{Len}(Seq_{\text{expert}})} \).
+        A single-step action counts as recalled if both the skill primitive and the target entity category match the expert reference; for flexibly-ordered tasks, an action matches any valid permutation satisfying the underlying dependency constraints. Expert reference sequences are manually constructed, individually verified, and minimized.</p>
+      </div>
+      <div class="metric-card">
+        <h4>Visual Grounding Score (AS<sub>bbox</sub>)</h4>
+        <p>Pools all 2D bounding boxes predicted across various execution stages, evaluating alignment resolution via IoU against the ground-truth geometric mask:
+        \( AS_{\text{bbox}} = \frac{1}{K} \sum_{k=1}^{K} \text{IoU}(\text{BBox}_k, \text{Mask}_k) \).
+        Malformed or unparsable bounding-box outputs are assigned an IoU of 0.</p>
+      </div>
+      <div class="metric-card">
+        <h4>Reflection Score (RS)</h4>
+        <p>Aggregates all repeated-action loops within an episode. A loop is a sequence of redundant, consecutive manipulation primitives executed on an identical target prior to correcting its prerequisite states (e.g., base positioning). For an episode with \(M \ge 1\) loops of lengths \(n_1, \dots, n_M\):
+        \( RS = \frac{1}{M} \sum_{i=1}^{M} \gamma\, e^{-\lambda n_i} \), with sensitivity \(\lambda &gt; 0\).
+        The compliance coefficient \(\gamma = 1.0\) if the task succeeds and \(\alpha \in (0,1)\) otherwise, ensuring failed trajectories remain bounded below the performance profile of successful ones while preserving flexibility to reward far-horizon exploratory behaviors that circumvent chronic deadlocks. RS is computed only over episodes containing at least one repeated-action loop.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Results ================= -->
+  <section id="results">
+    <h2 class="section-title">Experiments and Results</h2>
+    <h3 class="subsection-title">Setup</h3>
+    <p>
+      We evaluate five popular VLMs: <strong>Gemini-2.5-Pro</strong>, <strong>Gemini-3-Pro-preview</strong>, <strong>Gemini-3-Flash-preview</strong>, <strong>Qwen-3.5-Plus</strong>, and <strong>Doubao-SEED-2.0-Pro-260215</strong>. Tests are conducted within a unified MuJoCo simulation framework encompassing 70 canonical task scenarios via domain randomization (60 pure manipulation tasks + 10 composite navigation&ndash;manipulation tasks). Each task instance is evaluated over 3 independent episodes to guarantee statistical reliability. Task configurations are pre-generated as fixed JSON files, and all models load identical configurations to ensure fairness and reproducibility.
+    </p>
+    <p>
+      Implementation details: visual history is capped at &le;8 steps for manipulation trials (&le;5 for navigation with BEV); RS hyperparameters are \(\lambda = 0.2\), \(\alpha = 0.5\); episode limits are 15 steps for manipulation and 30 for composite navigation (timeout counts as failure). Serially evaluating all episodes takes approximately 3&ndash;4 days; VLMs are invoked through API calls and naturally support parallelization.
+    </p>
+
+    <h3 class="subsection-title">Manipulation Tasks</h3>
+    <p>
+      Evaluation results across three manipulation task categories: short-range, common sense &amp; semantic, and long-horizon tasks.
+    </p>
+    <div class="table-wrap">
+      <table class="results" style="min-width: 980px;">
+        <thead>
+          <tr>
+            <th rowspan="2">VLM Backend</th>
+            <th class="group-sep" colspan="6">Short-range Tasks</th>
+            <th class="group-sep" colspan="6">Common sense &amp; Semantic</th>
+            <th class="group-sep" colspan="6">Long-Horizon Tasks</th>
+          </tr>
+          <tr>
+            <th>SR</th><th>CR<sub>m</sub></th><th>EE</th><th>RR<sub>act</sub></th><th>AS<sub>bbox</sub></th><th>RS</th>
+            <th>SR</th><th>CR<sub>m</sub></th><th>EE</th><th>RR<sub>act</sub></th><th>AS<sub>bbox</sub></th><th>RS</th>
+            <th>SR</th><th>CR<sub>m</sub></th><th>EE</th><th>RR<sub>act</sub></th><th>AS<sub>bbox</sub></th><th>RS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Gemini-3-Pro</td><td>51.67</td><td>63.33</td><td>43.12</td><td>86.21</td><td>54.25</td><td>53.33</td><td>48.33</td><td>56.67</td><td>36.45</td><td>74.21</td><td>48.12</td><td>48.33</td><td>43.33</td><td>46.67</td><td>24.15</td><td>58.33</td><td>28.15</td><td>26.58</td></tr>
+          <tr><td>Gemini-3-Flash</td><td>51.67</td><td>58.33</td><td>41.79</td><td>84.35</td><td>52.18</td><td>51.43</td><td>50.83</td><td>55.83</td><td>37.12</td><td>71.34</td><td>46.54</td><td>46.62</td><td>38.33</td><td>43.33</td><td>25.56</td><td>56.67</td><td>26.32</td><td>23.33</td></tr>
+          <tr><td>Qwen-3.5-Plus</td><td>38.33</td><td>43.33</td><td>32.41</td><td>60.54</td><td>45.62</td><td>35.38</td><td>36.67</td><td>40.83</td><td>28.56</td><td>51.29</td><td>41.32</td><td>31.21</td><td>31.67</td><td>34.17</td><td>19.45</td><td>43.33</td><td>24.42</td><td>21.83</td></tr>
+          <tr><td>Doubao-SEED-2.0-Pro</td><td>46.67</td><td>52.50</td><td>39.85</td><td>80.12</td><td>55.41</td><td>45.83</td><td>43.33</td><td>51.67</td><td>34.19</td><td>65.42</td><td>50.12</td><td>43.33</td><td>33.33</td><td>38.33</td><td>21.54</td><td>51.67</td><td>22.24</td><td>21.43</td></tr>
+          <tr><td>Gemini-2.5-Pro</td><td>41.67</td><td>49.17</td><td>34.68</td><td>71.43</td><td>43.19</td><td>41.46</td><td>38.33</td><td>46.67</td><td>30.15</td><td>60.12</td><td>39.54</td><td>41.24</td><td>36.67</td><td>41.67</td><td>18.89</td><td>56.67</td><td>21.51</td><td>24.32</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      The models exhibit comparable performance between standard manipulation and common-sense &amp; semantic reasoning tasks, maintaining a high \(RR_{\text{act}}\) &mdash; evidence that they possess rich affordance knowledge for mapping natural language requirements into deterministic action plans. However, for long-horizon manipulation tasks requiring sequential action coordination, the overall success rate decreases. Micro-level analysis reveals this degradation is primarily driven by localized execution failures: when the bounding box drops and triggers an interaction failure, the model repeats the exact same failed action primitive on the target entity instead of using inspection primitives such as wrist camera observations to regain a clear field of view and replan &mdash; exposing a critical limitation in dynamic closed-loop error correction and feedback-driven strategy adaptation during extended physical interactions.
+    </p>
+
+    <h3 class="subsection-title">Composite Navigation&ndash;Manipulation Tasks</h3>
+    <div class="table-wrap">
+      <table class="results">
+        <caption>Composite navigation tasks <strong>with BEV mapping</strong>.</caption>
+        <thead>
+          <tr><th>VLM Backend</th><th>SR (%)</th><th>CR<sub>n</sub> (%)</th><th>NP</th><th>CR<sub>m</sub> (%)</th><th>EE</th><th>RR<sub>act</sub></th><th>AS<sub>bbox</sub></th><th>RS</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Gemini-3-Pro</td><td>16.67</td><td>28.33</td><td>27.41</td><td>21.67</td><td>22.87</td><td>25.97</td><td>31.14</td><td>21.08</td></tr>
+          <tr><td>Gemini-3-Flash</td><td>13.33</td><td>23.33</td><td>22.56</td><td>18.33</td><td>21.17</td><td>20.42</td><td>26.07</td><td>19.07</td></tr>
+          <tr><td>Qwen-3.5-Plus</td><td>10.00</td><td>18.33</td><td>16.42</td><td>13.33</td><td>14.71</td><td>17.30</td><td>22.92</td><td>18.96</td></tr>
+          <tr><td>Doubao-SEED-2.0-Pro</td><td>10.00</td><td>21.67</td><td>17.78</td><td>16.67</td><td>21.22</td><td>19.07</td><td>21.58</td><td>19.83</td></tr>
+          <tr><td>Gemini-2.5-Pro</td><td>13.33</td><td>26.67</td><td>21.15</td><td>16.67</td><td>19.54</td><td>18.70</td><td>24.16</td><td>22.79</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <table class="results">
+        <caption>Composite navigation tasks <strong>without BEV mapping</strong>.</caption>
+        <thead>
+          <tr><th>VLM Backend</th><th>SR (%)</th><th>CR<sub>n</sub> (%)</th><th>NP</th><th>CR<sub>m</sub> (%)</th><th>EE</th><th>RR<sub>act</sub></th><th>AS<sub>bbox</sub></th><th>RS</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Gemini-3-Pro</td><td>6.67</td><td>13.33</td><td>18.24</td><td>11.67</td><td>14.12</td><td>15.62</td><td>21.45</td><td>18.33</td></tr>
+          <tr><td>Gemini-3-Flash</td><td>6.67</td><td>13.33</td><td>15.12</td><td>8.33</td><td>12.35</td><td>12.84</td><td>18.12</td><td>16.32</td></tr>
+          <tr><td>Qwen-3.5-Plus</td><td>3.33</td><td>11.67</td><td>11.43</td><td>6.67</td><td>8.56</td><td>10.15</td><td>14.32</td><td>11.17</td></tr>
+          <tr><td>Doubao-SEED-2.0-Pro</td><td>6.67</td><td>13.33</td><td>12.56</td><td>8.33</td><td>11.19</td><td>11.42</td><td>15.24</td><td>13.33</td></tr>
+          <tr><td>Gemini-2.5-Pro</td><td>6.67</td><td>11.67</td><td>13.15</td><td>8.33</td><td>7.43</td><td>9.12</td><td>13.54</td><td>14.46</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      <strong>Active vision and egocentric navigation.</strong> Stripping away global top-down priors (no BEV) leads to a severe degradation in both navigation success rates and pathfinding efficiency across all models. Under purely egocentric constraints, models rely heavily on rotation primitives to keep the target object within the local field of view rather than proactively exploring via forward advancement, drastically increasing action redundancy. Due to the lack of global spatial references, a VLM tends to prematurely issue localized manipulation commands before the mobile base reaches the workstation interaction radius &mdash; a vulnerability further exacerbated by subtle obstacles observed in earlier frames but not leveraged for avoidance, highlighting the fragility of egocentric spatial reasoning and temporal visual memory.
+    </p>
+
+    <h3 class="subsection-title">Spatial Grounding under Long Sequences</h3>
+    <p>
+      To disentangle the relationship between context length and localization accuracy, we conduct a controlled experiment that fixes the visual input while varying only the number of history frames in the context (2&ndash;16), evaluating BBox IoU under a normal scene and a long-distance + occlusion scene (10 runs per scene).
+    </p>
+    <div class="table-wrap">
+      <table class="results">
+        <caption>BBox IoU vs. visual context frames (2&ndash;16).</caption>
+        <thead>
+          <tr><th>Model</th><th>Cond.</th><th>2</th><th>4</th><th>6</th><th>8</th><th>10</th><th>12</th><th>14</th><th>16</th></tr>
+        </thead>
+        <tbody>
+          <tr><td rowspan="2">Gemini-3-Pro</td><td>Normal</td><td>0.73&plusmn;0.01</td><td>0.73&plusmn;0.01</td><td>0.72&plusmn;0.01</td><td>0.65&plusmn;0.23</td><td>0.72&plusmn;0.03</td><td>0.66&plusmn;0.23</td><td>0.73&plusmn;0.01</td><td>0.65&plusmn;0.23</td></tr>
+          <tr><td>Ld+Occ</td><td>0.80&plusmn;0.02</td><td>0.56&plusmn;0.39</td><td>0.55&plusmn;0.38</td><td>0.55&plusmn;0.38</td><td>0.64&plusmn;0.34</td><td>0.16&plusmn;0.34</td><td>0.39&plusmn;0.42</td><td>0.32&plusmn;0.41</td></tr>
+          <tr><td rowspan="2">Gemini-3-Flash</td><td>Normal</td><td>0.71&plusmn;0.01</td><td>0.72&plusmn;0.01</td><td>0.72&plusmn;0.01</td><td>0.72&plusmn;0.01</td><td>0.71&plusmn;0.01</td><td>0.72&plusmn;0.01</td><td>0.73&plusmn;0.01</td><td>0.73&plusmn;0.01</td></tr>
+          <tr><td>Ld+Occ</td><td>0.77&plusmn;0.06</td><td>0.81&plusmn;0.02</td><td>0.81&plusmn;0.01</td><td>0.81&plusmn;0.01</td><td>0.81&plusmn;0.01</td><td>0.63&plusmn;0.34</td><td>0.66&plusmn;0.26</td><td>0.76&plusmn;0.10</td></tr>
+          <tr><td rowspan="2">Qwen-3.5-Plus</td><td>Normal</td><td>0.33&plusmn;0.01</td><td>0.43&plusmn;0.05</td><td>0.45&plusmn;0.15</td><td>0.40&plusmn;0.12</td><td>0.29&plusmn;0.04</td><td>0.45&plusmn;0.16</td><td>0.40&plusmn;0.13</td><td>0.40&plusmn;0.13</td></tr>
+          <tr><td>Ld+Occ</td><td>0.26&plusmn;0.16</td><td>0.38&plusmn;0.24</td><td>0.31&plusmn;0.29</td><td>0.39&plusmn;0.37</td><td>0.44&plusmn;0.31</td><td>0.41&plusmn;0.28</td><td>0.32&plusmn;0.31</td><td>0.37&plusmn;0.36</td></tr>
+          <tr><td rowspan="2">Doubao-SEED-2.0-Pro</td><td>Normal</td><td>0.60&plusmn;0.08</td><td>0.58&plusmn;0.06</td><td>0.55&plusmn;0.06</td><td>0.53&plusmn;0.06</td><td>0.20&plusmn;0.27</td><td>0.46&plusmn;0.17</td><td>0.12&plusmn;0.21</td><td>0.00&plusmn;0.00</td></tr>
+          <tr><td>Ld+Occ</td><td>0.33&plusmn;0.14</td><td>0.20&plusmn;0.17</td><td>0.13&plusmn;0.15</td><td>0.16&plusmn;0.17</td><td>0.01&plusmn;0.02</td><td>0.00&plusmn;0.00</td><td>0.00&plusmn;0.00</td><td>0.00&plusmn;0.00</td></tr>
+          <tr><td rowspan="2">Gemini-2.5-Pro</td><td>Normal</td><td>0.52&plusmn;0.30</td><td>0.62&plusmn;0.21</td><td>0.58&plusmn;0.25</td><td>0.54&plusmn;0.31</td><td>0.52&plusmn;0.31</td><td>0.58&plusmn;0.25</td><td>0.62&plusmn;0.21</td><td>0.54&plusmn;0.30</td></tr>
+          <tr><td>Ld+Occ</td><td>0.62&plusmn;0.28</td><td>0.64&plusmn;0.30</td><td>0.56&plusmn;0.34</td><td>0.48&plusmn;0.42</td><td>0.56&plusmn;0.38</td><td>0.52&plusmn;0.27</td><td>0.42&plusmn;0.25</td><td>0.44&plusmn;0.39</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      Localization accuracy varies in a clearly model-dependent manner as the context lengthens: models such as Gemini-3-Flash remain stable under normal conditions or fluctuate only within a trendless range; only SEED-2.0 exhibits clear monotonic degradation as the context grows, further exacerbated and emerging earlier under the long-distance + occlusion condition. This indicates that context length itself is not the direct cause of localization degradation &mdash; the degradation is more likely jointly driven by scene complexity (long-distance and occlusion) and the disparity in visual robustness across models. Models sensitive to complex visual conditions accumulate coordinate hallucinations and grasping failures as the sequence progresses, whereas models with stronger visual robustness maintain stable low-level spatial resolution over long contexts.
+    </p>
+  </section>
+
+  <!-- ================= Videos ================= -->
+  <section id="videos">
+    <h2 class="section-title">Video Demonstrations</h2>
+    <p class="muted">
+      The demonstrations are organized into two parts: <strong>manipulation</strong> tasks and <strong>navigation</strong> tasks.
+      <!--
+        ============================================================
+        TODO: 在此处放入视频（操作类 / 导航类）。
+        模板（将视频文件放入 videos/ 目录）：
+        <h3 class="subsection-title">Manipulation (操作类)</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+          <video class="demo" controls muted loop playsinline src="videos/manipulation_demo_1.mp4"></video>
+        </div>
+        ============================================================
+      -->
+    </p>
+
+    <h3 class="subsection-title">Manipulation Tasks (操作类)</h3>
+    <div class="video-grid">
+      <!-- TODO: 操作类演示视频待补充 -->
+      <div class="video-placeholder">
+        <p class="tag">Video coming soon</p>
+        <p>Demonstrations of standalone manipulation tasks: short-range, common sense &amp; semantic, and long-horizon tabletop tasks.</p>
+      </div>
+    </div>
+
+    <h3 class="subsection-title">Navigation Tasks (导航类)</h3>
+    <div class="video-grid">
+      <!-- TODO: 导航类演示视频待补充 -->
+      <div class="video-placeholder">
+        <p class="tag">Video coming soon</p>
+        <p>Demonstrations of composite navigation&ndash;manipulation tasks across multiple functional layouts (with / without BEV mapping).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Rollout Logs ================= -->
+  <section id="rollouts">
+    <h2 class="section-title">Interactive Rollout Logs</h2>
+    <p>
+      These interactive execution logs record the complete multi-step decision process of a VLM agent
+      (<strong>Gemini-3-Flash</strong>) on RMMBench tasks, including the natural-language instruction, per-step visual observations,
+      skill selections, bounding-box predictions, and environmental feedback. Each panel below is a <em>scrollable</em> mini window &mdash;
+      scroll up and down inside a panel to walk through the episode step by step, or click &ldquo;Open full log&rdquo; to view the complete page.
+    </p>
+
+    <div class="debug-group-title">
+      <h3 class="subsection-title" style="margin:0;">Manipulation Tasks (操作类)</h3>
+    </div>
+    <div class="debug-grid two-col">
+      <div class="debug-card">
+        <div class="debug-card-header">
+          <span class="name">select_snacks <span class="model">&middot; Gemini-3-Flash</span></span>
+          <a class="open-link" href="debug/manipulation_select_snacks.html" target="_blank">Open full log &nearr;</a>
+        </div>
+        <iframe src="debug/manipulation_select_snacks.html" title="select_snacks rollout log" loading="lazy" scrolling="yes"></iframe>
+        <div class="hint">Scroll inside the window to inspect each step.</div>
+      </div>
+      <div class="debug-card">
+        <div class="debug-card-header">
+          <span class="name">uncover_fruit <span class="model">&middot; Gemini-3-Flash</span></span>
+          <a class="open-link" href="debug/manipulation_uncover_fruit.html" target="_blank">Open full log &nearr;</a>
+        </div>
+        <iframe src="debug/manipulation_uncover_fruit.html" title="uncover_fruit rollout log" loading="lazy" scrolling="yes"></iframe>
+        <div class="hint">Scroll inside the window to inspect each step.</div>
+      </div>
+    </div>
+
+    <div class="debug-group-title">
+      <h3 class="subsection-title" style="margin:0;">Composite Navigation Tasks (复合导航类)</h3>
+    </div>
+    <div class="debug-grid two-col">
+      <div class="debug-card">
+        <div class="debug-card-header">
+          <span class="name">organize_snacks_to_tray <span class="model">&middot; no BEV, no LiDAR rays</span></span>
+          <a class="open-link" href="debug/nav_nobev_without_lidar.html" target="_blank">Open full log &nearr;</a>
+        </div>
+        <iframe src="debug/nav_nobev_without_lidar.html" title="navigation rollout log without LiDAR rays" loading="lazy" scrolling="yes"></iframe>
+        <div class="hint">Composite navigation without BEV and without LiDAR auxiliary rays &mdash; purely egocentric decision-making.</div>
+      </div>
+      <div class="debug-card">
+        <div class="debug-card-header">
+          <span class="name">organize_snacks_to_tray <span class="model">&middot; no BEV, with LiDAR rays</span></span>
+          <a class="open-link" href="debug/nav_nobev_with_lidar.html" target="_blank">Open full log &nearr;</a>
+        </div>
+        <iframe src="debug/nav_nobev_with_lidar.html" title="navigation rollout log with LiDAR rays" loading="lazy" scrolling="yes"></iframe>
+        <div class="hint">Composite navigation without BEV but with LiDAR auxiliary rays overlaid on the view.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Citation ================= -->
+  <section id="citation">
+    <h2 class="section-title">Citation</h2>
+    <!-- TODO: 更新 arXiv 编号 / venue 后请同步修改下方 BibTeX -->
+    <div class="citation-box">
+<pre>@article{li2026rmmbench,
+  title   = {RMMBench: A Comprehensive Benchmark for Robotic Mobile Manipulation},
+  author  = {Li, Huapeng and Feng, Fuxiang and Fan, Jinqiu and Yang, Shuo and
+             Chen, Fengjiao and Cao, Xuezhi and Song, Ran and Zhang, Wei},
+  journal = {arXiv preprint arXiv:XXXX.XXXXX},
+  year    = {2026}
+}</pre>
+    </div>
+  </section>
+
+  <!-- ================= Acknowledgments ================= -->
+  <section id="acknowledgments">
+    <h2 class="section-title">Acknowledgments</h2>
+    <p class="ack">
+      This work was supported in part by the National Natural Science Foundation of China under Grant U22A2057,
+      in part by the Key R&amp;D Program of Shandong Province under Grant 2025CXGC010210,
+      and in part by the Municipal-University Collaborative Development Project of Jinan under Grant JNSX2025002.
+    </p>
+  </section>
+
+  <footer>
+    <p>RMMBench &copy; 2026 &middot; Shandong University &amp; Meituan Group &middot; Template inspired by academic project pages.</p>
+  </footer>
+
+</div>
+</body>
+</html>
