@@ -115,6 +115,17 @@
 
   /* ---------- Video section ---------- */
   .video-grid { display: grid; grid-template-columns: 1fr; gap: 26px; margin-top: 10px; }
+  .video-grid.demo-grid {
+    grid-template-columns: repeat(6, 1fr); gap: 14px 12px;
+  }
+  .video-item { margin: 0; min-width: 0; }
+  .video-item video { width: 100%; height: auto; display: block; border-radius: 6px; border: 1px solid var(--border); background: #000; }
+  .video-cap {
+    font-size: .72rem; text-align: center; color: var(--muted);
+    margin-top: 5px; line-height: 1.4; word-break: break-all;
+  }
+  @media (max-width: 960px) { .video-grid.demo-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 560px) { .video-grid.demo-grid { grid-template-columns: repeat(2, 1fr); } }
   .video-placeholder {
     border: 2px dashed var(--border); border-radius: var(--radius);
     background: var(--light-bg); padding: 46px 20px; text-align: center; color: var(--muted);
@@ -262,12 +273,26 @@
     </p>
 
     <h3 class="subsection-title">Manipulation Tasks</h3>
-    <div class="video-grid">
-      <!-- TODO: manipulation demo videos to be added -->
-      <div class="video-placeholder">
-        <p class="tag">Video coming soon</p>
-        <p>Demonstrations of standalone manipulation tasks: short-range, common sense &amp; semantic, and long-horizon tabletop tasks.</p>
-      </div>
+    <!-- Successful (True) manipulation episodes, one per task, 6 per row -->
+    <div class="video-grid demo-grid">
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/cook_chicken_breast_0.mp4"></video><figcaption class="video-cap">cook_chicken_breast_0</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/cook_sausage_0.mp4"></video><figcaption class="video-cap">cook_sausage_0</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/fix_burnt_bread_0.mp4"></video><figcaption class="video-cap">fix_burnt_bread_0</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/pick_bottle_opener_0.mp4"></video><figcaption class="video-cap">pick_bottle_opener_0</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/pick_chip.mp4"></video><figcaption class="video-cap">pick_chip</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/pick_chocolate.mp4"></video><figcaption class="video-cap">pick_chocolate</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/pick_no_sugar_drink.mp4"></video><figcaption class="video-cap">pick_no_sugar_drink</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/pick_non_alcoholic_drink.mp4"></video><figcaption class="video-cap">pick_non_alcoholic_drink</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/pick_whisk_0.mp4"></video><figcaption class="video-cap">pick_whisk_0</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/select_bagged_snacks.mp4"></video><figcaption class="video-cap">select_bagged_snacks</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/select_bread_toaster_0.mp4"></video><figcaption class="video-cap">select_bread_toaster_0</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/select_bread_toaster_1.mp4"></video><figcaption class="video-cap">select_bread_toaster_1</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/select_bread_toaster_2.mp4"></video><figcaption class="video-cap">select_bread_toaster_2</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/select_same_cake.mp4"></video><figcaption class="video-cap">select_same_cake</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/store_yogurt.mp4"></video><figcaption class="video-cap">store_yogurt</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/uncover_fruit.mp4"></video><figcaption class="video-cap">uncover_fruit</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/wash_place_carrot.mp4"></video><figcaption class="video-cap">wash_place_carrot</figcaption></figure>
+      <figure class="video-item"><video controls muted loop playsinline preload="metadata" src="videos/manip/wash_place_cucumber.mp4"></video><figcaption class="video-cap">wash_place_cucumber</figcaption></figure>
     </div>
 
     <h3 class="subsection-title">Navigation Tasks</h3>
